@@ -3,11 +3,14 @@ FROM node:22-alpine
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm install
+COPY prisma ./prisma/
+COPY prisma.config.ts ./
+
+RUN npm install --ignore-scripts
 
 COPY . .
-RUN npm run build
 RUN npx prisma generate
+RUN npm run build
 
 EXPOSE 3000
 
