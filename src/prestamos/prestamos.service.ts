@@ -5,6 +5,7 @@ import { UpdatePrestamoDto } from './dto/update-prestamo.dto';
 
 const DIAS_MAX_CLIENTE = 10;
 const MULTA_POR_DIA = 0.50;
+const TARIFA_BASE = 1.00; // $1.00 tarifa base por préstamo
 
 @Injectable()
 export class PrestamosService {
@@ -28,22 +29,25 @@ export class PrestamosService {
       throw new BadRequestException('El usuario ya tiene 3 préstamos activos. No puede tener más.');
     }
 
+    // Calcular costo del préstamo según rol
+    let costoPrestamo = TARIFA_BASE;
+    if (usuario.rol === 'PROFESOR') {
+      costoPrestamo = 0; // gratuito
+    } else if (usuario.rol === 'ESTUDIANTE') {
+      costoPrestamo = TARIFA_BASE * 0.5; // 50% descuento
+    }
+    // CLIENTE y demás pagan tarifa completa
+
     // Calcular fecha de devolución según rol
     let fechaDevolucion = new Date(dto.fechaDevolucion);
-    let monto = 0;
 
+    // Clientes solo 10 días máximo
     if (usuario.rol === 'CLIENTE') {
-      // Clientes solo 10 días máximo
       const maxFecha = new Date();
       maxFecha.setDate(maxFecha.getDate() + DIAS_MAX_CLIENTE);
       if (fechaDevolucion > maxFecha) {
         fechaDevolucion = maxFecha;
       }
-      monto = 0; // tarifa estándar, multa si se pasa
-    } else if (usuario.rol === 'PROFESOR') {
-      monto = 0; // gratuito
-    } else if (usuario.rol === 'ESTUDIANTE') {
-      monto = 0; // 50% descuento (se aplica si hay tarifa)
     }
 
     const prestamo = await this.prisma.prestamo.create({
@@ -54,6 +58,7 @@ export class PrestamosService {
         tipoDocRetenido: dto.tipoDocRetenido,
         observaciones: dto.observaciones,
         estado: 'ACTIVO',
+        costoPrestamo,
       },
       include: {
         usuario: { select: { id: true, nombre: true, email: true, rol: true } },
@@ -70,6 +75,7 @@ export class PrestamosService {
       ...prestamo,
       info: {
         rol: usuario.rol,
+        costoPrestamo,
         gratuito: usuario.rol === 'PROFESOR',
         descuento: usuario.rol === 'ESTUDIANTE' ? '50%' : '0%',
         diasMaximos: usuario.rol === 'CLIENTE' ? DIAS_MAX_CLIENTE : null,

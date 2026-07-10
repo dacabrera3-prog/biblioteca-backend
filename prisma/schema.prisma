@@ -70,6 +70,7 @@ model Prestamo {
   estado           EstadoPrestamo @default(PENDIENTE)
   tipoDocRetenido  String?
   observaciones    String?
+  costoPrestamo    Float          @default(0)
   creadoEn         DateTime       @default(now())
   actualizadoEn    DateTime       @updatedAt
 
