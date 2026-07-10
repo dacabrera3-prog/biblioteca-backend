@@ -24,6 +24,10 @@ export class LibrosService {
   }
 
   async buscar(query: string) {
+    // Intentar parsear como año
+    const anio = parseInt(query);
+    const esAnio = !isNaN(anio) && anio > 999 && anio < 9999;
+
     return this.prisma.libro.findMany({
       where: {
         activo: true,
@@ -31,6 +35,8 @@ export class LibrosService {
           { titulo: { contains: query, mode: 'insensitive' } },
           { autor: { contains: query, mode: 'insensitive' } },
           { editorial: { contains: query, mode: 'insensitive' } },
+          { isbn: { contains: query, mode: 'insensitive' } },
+          ...(esAnio ? [{ anio: { equals: anio } }] : []),
         ],
       },
     });
