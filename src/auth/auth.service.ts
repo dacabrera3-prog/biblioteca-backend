@@ -34,4 +34,18 @@ export class AuthService {
       },
     };
   }
+
+  async registro(dto: any) {
+    // El registro público solo permite crear CLIENTE, ESTUDIANTE o PROFESOR
+    const rolesPermitidos = ['CLIENTE', 'ESTUDIANTE', 'PROFESOR'];
+    if (dto.rol && !rolesPermitidos.includes(dto.rol)) {
+      dto.rol = 'CLIENTE';
+    }
+    const usuario = await this.usuariosService.create(dto);
+    const payload = { sub: usuario.id, email: usuario.email, rol: usuario.rol };
+    return {
+      access_token: this.jwtService.sign(payload),
+      usuario,
+    };
+  }
 }

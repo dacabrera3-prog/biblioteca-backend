@@ -21,8 +21,8 @@ export class LibrosController {
 
   // Todos pueden ver libros
   @Get()
-  findAll(@Query('buscar') buscar?: string) {
-    if (buscar) return this.librosService.buscar(buscar);
+  findAll(@Query('buscar') buscar?: string, @Query('anio') anio?: string) {
+    if (buscar || anio) return this.librosService.buscar(buscar, anio ? parseInt(anio) : undefined);
     return this.librosService.findAll();
   }
 

@@ -23,20 +23,24 @@ export class LibrosService {
     return libro;
   }
 
-  async buscar(query: string) {
-    // Intentar parsear como año
-    const anio = parseInt(query);
-    const esAnio = !isNaN(anio) && anio > 999 && anio < 9999;
+  async buscar(query?: string, anio?: number) {
+    const esAnio = query ? (!isNaN(parseInt(query)) && parseInt(query) > 999) : false;
+    const anioQuery = anio || (esAnio ? parseInt(query!) : undefined);
+    const textQuery = (esAnio || !query) ? undefined : query;
 
     return this.prisma.libro.findMany({
       where: {
         activo: true,
-        OR: [
-          { titulo: { contains: query, mode: 'insensitive' } },
-          { autor: { contains: query, mode: 'insensitive' } },
-          { editorial: { contains: query, mode: 'insensitive' } },
-          { isbn: { contains: query, mode: 'insensitive' } },
-          ...(esAnio ? [{ anio: { equals: anio } }] : []),
+        AND: [
+          ...(anioQuery ? [{ anio: { equals: anioQuery } }] : []),
+          ...(textQuery ? [{
+            OR: [
+              { titulo: { contains: textQuery, mode: 'insensitive' as const } },
+              { autor: { contains: textQuery, mode: 'insensitive' as const } },
+              { editorial: { contains: textQuery, mode: 'insensitive' as const } },
+              { isbn: { contains: textQuery, mode: 'insensitive' as const } },
+            ],
+          }] : []),
         ],
       },
     });
