@@ -128,7 +128,20 @@ export class PrestamosService {
       const diasRetraso = Math.ceil(
         (ahora.getTime() - prestamo.fechaDevolucion.getTime()) / (1000 * 60 * 60 * 24)
       );
-      const monto = diasRetraso * MULTA_POR_DIA;
+
+      const usuario = await this.prisma.usuario.findUnique({ where: { id: prestamo.usuarioId } });
+      let monto = diasRetraso * MULTA_POR_DIA;
+
+      // Profesores: préstamo gratuito, sin multa
+      if (usuario?.rol === 'PROFESOR') {
+        monto = 0;
+      }
+      // Estudiantes: 50% descuento en la multa
+      else if (usuario?.rol === 'ESTUDIANTE') {
+        monto = monto * 0.5;
+      }
+      // Clientes y demás: tarifa completa ($0.50/día)
+
       await this.prisma.multa.create({
         data: { prestamoId: id, usuarioId: prestamo.usuarioId, diasRetraso, monto },
       });
