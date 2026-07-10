@@ -5,7 +5,7 @@ import { UpdatePrestamoDto } from './dto/update-prestamo.dto';
 
 const DIAS_MAX_CLIENTE = 10;
 const MULTA_POR_DIA = 0.50;
-const TARIFA_BASE = 1.00; // $1.00 tarifa base por préstamo
+const TARIFA_BASE = 2.00; // $2.00 tarifa base por préstamo
 
 @Injectable()
 export class PrestamosService {
